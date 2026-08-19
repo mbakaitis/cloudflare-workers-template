@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add contract tests to enforce environment isolation: verify separate Worker names, prevent production bindings at top level, and catch accidental environment misconfiguration.
+- Update `project-setup.md` with environment isolation enforcement documentation, including contract test overview and manual configuration steps for adding environment-specific bindings (D1, R2, KV, etc.).
+- Update the `test:contracts` npm script to run all contract tests in `test/contracts/` instead of a single file.
 - Add ESLint configuration, lint scripts, and CI/deployment quality gates for JavaScript source and tests.
 - Add the hosted GitHub MCP server to the shared MCP configuration so authenticated tools can inspect repository issues and data.
 - Make GitHub deployment opt-in with the `DEPLOY_ENABLED` repository variable so the template does not deploy to Cloudflare.
