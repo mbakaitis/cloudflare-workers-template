@@ -28,11 +28,13 @@ The repository configures the hosted GitHub MCP server in `.mcp.json` and `.vsco
 ## Testing
 
 ```sh
+npm run lint
+npm run lint:fix
 npm test
 npm run test:watch
 ```
 
-Tests use `@cloudflare/vitest-pool-workers`, so they execute in the Workers runtime locally through Miniflare. Add Worker behavior tests under `test/` and keep the Worker entry point in `src/index.js`.
+ESLint checks JavaScript source and tests. Use `npm run lint:fix` for safe automatic style fixes, then review the resulting diff. Tests use `@cloudflare/vitest-pool-workers`, so they execute in the Workers runtime locally through Miniflare. Add Worker behavior tests under `test/` and keep the Worker entry point in `src/index.js`.
 
 ## Deployment
 
