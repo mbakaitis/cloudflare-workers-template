@@ -23,6 +23,8 @@ npm run dev
 
 Local Wrangler development uses the top-level configuration and never deploys a Cloudflare Worker. Do not put production credentials in local environment files.
 
+The repository configures the hosted GitHub MCP server in `.mcp.json` and `.vscode/mcp.json`, alongside Cloudflare Docs. VS Code will prompt you to authenticate GitHub when the server is first used; the configuration contains no token. Once authenticated, Copilot can inspect issues and other GitHub repository data that your account is allowed to access.
+
 ## Testing
 
 ```sh
