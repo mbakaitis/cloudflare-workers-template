@@ -18,7 +18,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest run && npm run test:contracts",
-    "test:contracts": "node --test test/contracts/workflow.test.js",
+    "test:contracts": "node --test test/contracts/*.test.js",
     "test:watch": "vitest",
     "deploy:non-prod": "wrangler deploy --env non-prod",
     "deploy:production": "wrangler deploy --env production"
