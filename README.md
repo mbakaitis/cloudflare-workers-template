@@ -30,11 +30,12 @@ The repository configures the hosted GitHub MCP server in `.mcp.json` and `.vsco
 ```sh
 npm run lint
 npm run lint:fix
+npm run types
 npm test
 npm run test:watch
 ```
 
-ESLint checks JavaScript source and tests. Use `npm run lint:fix` for safe automatic style fixes, then review the resulting diff. Tests use `@cloudflare/vitest-pool-workers`, so they execute in the Workers runtime locally through Miniflare. Add Worker behavior tests under `test/` and keep the Worker entry point in `src/index.js`.
+ESLint checks JavaScript source and tests. Use `npm run lint:fix` for safe automatic style fixes, then review the resulting diff. Use `npm run types` to generate TypeScript types for your bindings and runtime APIs. Tests use `@cloudflare/vitest-pool-workers`, so they execute in the Workers runtime locally through Miniflare. Add Worker behavior tests under `test/` and keep the Worker entry point in `src/index.js`.
 
 ## Deployment
 

@@ -27,7 +27,11 @@ The implementation should normally include, or document why it does not include:
 
 - A minimal Worker entry point with an explicit `fetch` handler and a small health/basic response.
 - JavaScript source using ES modules with mandatory JSDoc. Document exported functions, Worker handlers, configuration contracts, and non-obvious behavior so developers and AI tools can understand the code without reconstructing intent. Do not introduce TypeScript as a project requirement.
-- Wrangler configuration in the current supported format, with an explicit `compatibility_date`. Do not commit generated credentials, API tokens, or real secrets.
+- Wrangler configuration in the current supported format, with an explicit `compatibility_date` and Cloudflare best practices enabled:
+  - **Observability enabled**: The `observability.enabled` setting captures logs and telemetry for monitoring and debugging.
+  - **Generated binding types**: Run `wrangler types` to generate TypeScript types for Worker bindings and runtime APIs. Include a `types` script in `package.json` for easy regeneration.
+  - **Node.js compatibility**: For compatibility dates `2026-08-04` or later, Node.js APIs are enabled by default and no explicit flag is required.
+  - Do not commit generated credentials, API tokens, or real secrets.
 - Separate `local`, `staging` (non-production Cloudflare), and `production` workflows. Use Wrangler named environments and environment-specific configuration rather than ad hoc flags.
 - Explicit rules for which bindings, routes, variables, and resources exist in each environment. Production resources must never be silently reused by local or staging work.
 - A local-development path that works without access to production resources. Use local emulation, fixtures, or explicit local bindings where appropriate.
@@ -41,8 +45,9 @@ Do not add a service, binding, dependency, or deployment target merely because i
 Use the repository's package scripts as the stable interface for contributors. A typical contract is:
 
 - `npm run dev`: run the Worker locally with Wrangler.
-- `npm test`: run the unit test suite.
+- `npm run types`: generate TypeScript types for Worker bindings and runtime APIs.
 - `npm run lint`: run JavaScript lint checks.
+- `npm test`: run the unit test suite.
 - `npm run deploy:staging`: deploy only the named non-production environment.
 - `npm run deploy:production`: deploy only production, with an explicit confirmation or CI protection where practical.
 

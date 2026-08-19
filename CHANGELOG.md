@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Enable Cloudflare Workers best practices: add observability logging to Wrangler configuration for automatic telemetry capture.
+- Add `npm run types` script to generate TypeScript types for Worker bindings and runtime APIs using `wrangler types`.
+- Document type generation and observability configuration in project development workflow.
 - Add contract tests to enforce environment isolation: verify separate Worker names, prevent production bindings at top level, and catch accidental environment misconfiguration.
 - Update `project-setup.md` with environment isolation enforcement documentation, including contract test overview and manual configuration steps for adding environment-specific bindings (D1, R2, KV, etc.).
 - Update the `test:contracts` npm script to run all contract tests in `test/contracts/` instead of a single file.

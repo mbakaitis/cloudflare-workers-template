@@ -14,6 +14,9 @@ node_modules/
 # Wrangler and Cloudflare local state
 .wrangler/
 
+# Generated types
+worker-configuration.d.ts
+
 # Build and test output
 dist/
 build/
