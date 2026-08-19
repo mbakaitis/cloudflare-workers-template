@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Make GitHub deployment opt-in with the `DEPLOY_ENABLED` repository variable so the template does not deploy to Cloudflare.
 - Document manual feature, release, and hotfix branch creation plus GitHub issue-closing commit references.
 - Configure the GitHub Issues extension to generate Gitflow-prefixed issue branches from sanitized issue types and titles.
 - Add documented Gitflow branches for local feature work, non-production deployment, and production deployment.

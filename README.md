@@ -42,3 +42,5 @@ npm run deploy:production
 ```
 
 The GitHub Actions deployment workflow runs non-production deployments from `develop` and production deployments from `main`. Configure the required Cloudflare secrets and GitHub environment protection as described in [docs/project-setup.md](docs/project-setup.md) before enabling it.
+
+Deployments are opt-in: the workflow is skipped until the GitHub Actions repository **variable** `DEPLOY_ENABLED` is set to `true`. This is not a secret; it only enables deployment. The Cloudflare API token and account ID remain GitHub secrets. This keeps the template repository and unconfigured forks from contacting Cloudflare.

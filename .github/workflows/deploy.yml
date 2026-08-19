@@ -12,6 +12,7 @@ permissions:
 jobs:
   deploy:
     name: deploy
+    if: ${{ vars.DEPLOY_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name == 'main' && 'production' || 'non-prod' }}
     steps:

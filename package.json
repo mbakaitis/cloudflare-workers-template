@@ -15,7 +15,8 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "test": "vitest run",
+    "test": "vitest run && npm run test:contracts",
+    "test:contracts": "node --test test/contracts/workflow.test.js",
     "test:watch": "vitest",
     "deploy:non-prod": "wrangler deploy --env non-prod",
     "deploy:production": "wrangler deploy --env production"

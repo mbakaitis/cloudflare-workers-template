@@ -57,6 +57,8 @@ Open a pull request from `feature/my-change` into `develop`. The CI workflow mus
 
 Keep feature branches short-lived. Start each feature from the latest `develop`, and do not commit directly to `develop` or `main`.
 
+The deployment workflow is opt-in. Set the GitHub Actions repository **variable** `DEPLOY_ENABLED` to `true` only after the fork has configured its Worker names, Cloudflare secrets, and protected environments. This flag is not a secret; it only enables deployment. The template repository leaves it unset, so pushes to `main` or `develop` skip the deploy job.
+
 ## Required repository policy
 
 Protect `develop` and `main` from direct pushes, deletion, force-pushes, and merges without a pull request and passing CI. Require at least one approving review and resolved review threads. Keep feature branches unprotected apart from the naming rule so local development remains lightweight.

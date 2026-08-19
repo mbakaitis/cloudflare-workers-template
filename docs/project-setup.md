@@ -96,6 +96,8 @@ If the repository starts on another default branch, rename it to `main` before r
 
 ## 4. Configure GitHub environments and secrets
 
+The deployment workflow is disabled by default. This protects the template repository and newly created forks from attempting Cloudflare deployments before a Worker, account, and credentials have been deliberately configured.
+
 Create these GitHub Actions environments:
 
 - `non-prod`, restricted to the `develop` branch
@@ -105,6 +107,8 @@ Add these secrets at repository or environment scope:
 
 - `CLOUDFLARE_API_TOKEN`: a least-privilege token that can deploy the two Workers
 - `CLOUDFLARE_ACCOUNT_ID`: the Cloudflare account containing those Workers
+
+`DEPLOY_ENABLED` is intentionally a repository **variable**, not a secret. It contains no sensitive value; it is only the explicit deployment opt-in. After the Worker names, environments, and Cloudflare secrets are ready, add `DEPLOY_ENABLED` with the value `true` under **Settings > Secrets and variables > Actions > Variables**. Do not add it to the template repository. Without it, the deploy job is skipped and no Cloudflare credentials are used.
 
 Do not commit these values or place them in `.env`, `.dev.vars`, or generated files.
 
