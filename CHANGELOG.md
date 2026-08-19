@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add ESLint configuration, lint scripts, and CI/deployment quality gates for JavaScript source and tests.
 - Add the hosted GitHub MCP server to the shared MCP configuration so authenticated tools can inspect repository issues and data.
 - Make GitHub deployment opt-in with the `DEPLOY_ENABLED` repository variable so the template does not deploy to Cloudflare.
 - Document manual feature, release, and hotfix branch creation plus GitHub issue-closing commit references.
