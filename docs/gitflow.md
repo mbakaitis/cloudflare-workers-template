@@ -12,6 +12,35 @@ This project uses three branch classes and two deployed Wrangler environments. F
 
 Branch names must use lowercase letters, numbers, dots, underscores, or hyphens after the prefix. For example, `feature/add-health-check` is valid; `feature/AddHealthCheck` is not.
 
+Create branches manually using the prefix that matches the work. Include the issue number in the branch name when the work comes from an issue:
+
+```sh
+# New work from develop
+git switch develop
+git pull --ff-only
+git switch -c feature/1-add-health-check
+
+# Release coordination from develop
+git switch develop
+git pull --ff-only
+git switch -c release/0.2.0
+
+# Production repair from main
+git switch main
+git pull --ff-only
+git switch -c hotfix/2-fix-authentication
+```
+
+In a commit message, reference the related issue with a GitHub closing keyword. Common forms are `Fixes #1`, `Closes #1`, and `Resolves #1`:
+
+```sh
+git commit -m "Add health check; fixes #1"
+```
+
+GitHub links the issue reference immediately. The issue is closed when the commit reaches the repository's default branch, normally after the pull request is merged. For an issue in another repository, use `OWNER/REPOSITORY#NUMBER` instead of `#NUMBER`. Labels remain useful for categorization, but they do not determine branch names.
+
+The ruleset in `.github/rulesets/gitflow-branch-names.json` allows the documented prefixes, but it must be applied through GitHub repository settings before it can reject noncompliant names.
+
 ## Development workflow
 
 Create local work from `develop`:
