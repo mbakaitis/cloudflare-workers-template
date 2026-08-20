@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Operationalize SemVer releases with Changesets configuration, scripts, contract coverage, and a `main`-branch release workflow that creates version tags for the private template.
 - Enable Cloudflare Workers best practices: add observability logging to Wrangler configuration for automatic telemetry capture.
 - Add `npm run types` script to generate TypeScript types for Worker bindings and runtime APIs using `wrangler types`.
 - Document type generation and observability configuration in project development workflow.

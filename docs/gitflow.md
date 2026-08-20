@@ -59,6 +59,28 @@ Keep feature branches short-lived. Start each feature from the latest `develop`,
 
 The deployment workflow is opt-in. Set the GitHub Actions repository **variable** `DEPLOY_ENABLED` to `true` only after the fork has configured its Worker names, Cloudflare secrets, and protected environments. This flag is not a secret; it only enables deployment. The template repository leaves it unset, so pushes to `main` or `develop` skip the deploy job.
 
+## Semantic Versioning workflow
+
+Use Changesets to record the release impact of changes that affect the template contract:
+
+```sh
+npm run changeset
+npm run changeset:status
+```
+
+Choose `patch` for compatible fixes, documentation, tests, and dependency updates; `minor` for compatible capabilities or extension points; and `major` for breaking changes to scripts, files, runtime assumptions, environments, bindings, or migration requirements. Commit the generated `.changeset/*.md` file with the pull request. Changesets are not required for changes that are purely internal and do not alter the forkable template contract.
+
+After a pull request merges into `main`, the release workflow opens or updates a release pull request. Review its generated `CHANGELOG.md`, `package.json`, and lockfile changes. Merging that release pull request runs `npm run version`, then tags the private package with `npm run release`. The workflow does not publish to npm. Deploying the resulting `main` commit remains governed by the separate, opt-in deployment workflow.
+
+Before merging a release pull request, verify:
+
+- The release impact matches the actual downstream migration requirement.
+- `npm run changeset:status`, `npm run lint`, and `npm test` pass.
+- The changelog entry explains the user-visible change and any fork migration.
+- The generated version is the next intended SemVer version.
+
+Fork maintainers should review and adopt upstream release pull requests manually. A fork may use the same Changesets workflow, but its application-specific bindings, deployment policy, and release cadence still require independent review.
+
 ## Required repository policy
 
 Protect `develop` and `main` from direct pushes, deletion, force-pushes, and merges without a pull request and passing CI. Require at least one approving review and resolved review threads. Keep feature branches unprotected apart from the naming rule so local development remains lightweight.
