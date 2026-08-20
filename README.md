@@ -12,6 +12,8 @@ Minimal, forkable Cloudflare Workers boilerplate with local Vitest testing and a
 
 Use [docs/gitflow.md](docs/gitflow.md) for the ongoing branch and promotion workflow. Use [docs/project-setup.md](docs/project-setup.md) when creating and configuring a new fork. API-ready ruleset payloads are in `.github/rulesets/`.
 
+Forks can enable the scheduled/manual `.github/workflows/upstream-sync.yml` workflow to propose upstream changes in a reviewable pull request. Set the `UPSTREAM_REPOSITORY` Actions variable in the fork; the workflow runs the fork's lint and test checks before opening the pull request and never auto-merges template changes.
+
 ## Releases
 
 This private template uses Changesets for Semantic Versioning. For every behavior or workflow change, add a changeset on the feature branch:

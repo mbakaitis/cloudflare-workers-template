@@ -159,6 +159,14 @@ Changesets is already configured for this private template. Keep the `.changeset
 
 If a fork changes package visibility or wants npm publication, update the Changesets `access` and `privatePackages` settings, add the required registry authentication, and review the workflow before enabling publication. Do not add registry credentials to the repository.
 
+## 8. Configure upstream sync
+
+Forks can use `.github/workflows/upstream-sync.yml` to propose template updates without overwriting application code. The workflow runs weekly and can also be started manually from the Actions tab. It fetches `main` from the configured upstream repository, merges it into a temporary `upstream-sync` branch, runs `npm run lint` and `npm test`, and opens a pull request when there are changes.
+
+Set the repository Actions **variable** `UPSTREAM_REPOSITORY` to the upstream owner and repository, for example `mbakaitis/workers`. The workflow defaults to this template repository when the variable is unset. Do not put credentials in the variable; public upstream repositories are fetched over HTTPS.
+
+The workflow is intentionally review-only. A merge conflict or failing downstream-specific test stops the workflow and does not create an adoption pull request. Review the generated pull request for application-specific bindings, configuration, and migration notes before merging. GitHub retains the previous commit, so rollback remains a reviewed revert or a deployment of the previous successful commit.
+
 ## Setup is complete when
 
 - `main` and `develop` exist on the remote.
