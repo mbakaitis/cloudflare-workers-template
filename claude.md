@@ -1,6 +1,6 @@
 # Cloudflare Workers Template Maintainer Guide
 
-**Instruction contract version:** 1.0.1
+**Instruction contract version:** 1.2.0
 
 This repository is the versioned boilerplate for Cloudflare Workers. It must remain useful when copied or forked into a new Worker project and must make future Cloudflare, Wrangler, and platform changes deliberate, testable, and documented.
 
@@ -29,12 +29,13 @@ The implementation should normally include, or document why it does not include:
 - JavaScript source using ES modules with mandatory JSDoc. Document exported functions, Worker handlers, configuration contracts, and non-obvious behavior so developers and AI tools can understand the code without reconstructing intent. Do not introduce TypeScript as a project requirement.
 - Wrangler configuration in the current supported format, with an explicit `compatibility_date` and Cloudflare best practices enabled:
   - **Observability enabled**: The `observability.enabled` setting captures logs and telemetry for monitoring and debugging.
-  - **Generated binding types**: Run `wrangler types` to generate TypeScript types for Worker bindings and runtime APIs. Include a `types` script in `package.json` for easy regeneration.
+  - **No generated TypeScript binding types**: This is a JavaScript project, so it does not carry a `types` script or commit generated binding types. Document bindings with JSDoc instead. A downstream project may run `npx wrangler types` on demand for editor autocomplete, but the template must not require it, document it as a workflow step, or depend on the generated file.
   - **Node.js compatibility**: For compatibility dates `2026-08-04` or later, Node.js APIs are enabled by default and no explicit flag is required.
   - Do not commit generated credentials, API tokens, or real secrets.
 - Separate `local`, `staging` (non-production Cloudflare), and `production` workflows. Use Wrangler named environments and environment-specific configuration rather than ad hoc flags.
 - Explicit rules for which bindings, routes, variables, and resources exist in each environment. Production resources must never be silently reused by local or staging work.
 - A local-development path that works without access to production resources. Use local emulation, fixtures, or explicit local bindings where appropriate.
+- A single declared Node.js version. `.nvmrc` is the source of truth; `engines.node` in `package.json` and every workflow's `node-version-file` must agree with it, and a contract test enforces that. Do not hardcode a Node version in a workflow.
 - A mandatory test setup that runs quickly in CI and locally, with unit tests for the Worker handler and meaningful tests for environment-sensitive behavior.
 - Documentation covering setup, development, testing, deployment, secrets, environments, and upgrades.
 
@@ -45,7 +46,6 @@ Do not add a service, binding, dependency, or deployment target merely because i
 Use the repository's package scripts as the stable interface for contributors. A typical contract is:
 
 - `npm run dev`: run the Worker locally with Wrangler.
-- `npm run types`: generate TypeScript types for Worker bindings and runtime APIs.
 - `npm run lint`: run JavaScript lint checks.
 - `npm test`: run the unit test suite.
 - `npm run deploy:staging`: deploy only the named non-production environment.
@@ -74,6 +74,12 @@ For CI/CD, prefer immutable, reviewable deployments from the protected default b
 
 At minimum, changes should pass unit tests, JavaScript linting, formatting if configured, and a Wrangler/configuration validation step. CI should run the same checks developers are instructed to run locally.
 
+### Documentation-only changes
+
+A change that touches only Markdown files, and no source, test, configuration, script, lockfile, or workflow file, does not require unit tests, linting, formatting, or Wrangler/configuration validation. Review it instead for accuracy: confirm that referenced commands, scripts, file paths, and internal links still exist and match the repository, and that the guidance does not contradict the instruction files. Say in the change report that validation was skipped because the change is documentation-only.
+
+This exemption does not apply when the same change also edits code or configuration, and it does not remove the requirement to keep documentation, changelog, and migration notes consistent.
+
 ## Forks and downstream alignment
 
 This repository is an upstream template, not a remote package that can safely overwrite application code. Design changes so a fork can compare and adopt them deliberately:
@@ -90,15 +96,23 @@ Do not promise automatic flow-down unless an actual synchronization mechanism ex
 
 ## Documentation requirements
 
-Update documentation in the same change when behavior or workflow changes. Keep at least:
+Update documentation in the same change when behavior or workflow changes. Documentation is written for the people who consume the template; `CONTRIBUTING.md` and this file are the only maintainer-facing documents. The current document set is:
 
-- `README.md`: quick start, prerequisites, commands, and the supported workflow.
-- An environment/deployment guide: local, staging, production, bindings, secrets, and rollback.
-- A testing guide: TDD loop, test boundaries, and CI checks.
-- An upgrade or migration guide: how forks consume upstream changes.
-- `CHANGELOG.md`: user-visible changes, migration notes, and release links or references where available.
+| File | Audience and role |
+| --- | --- |
+| `README.md` | Consumers: what the template is, quickstart, prerequisites, commands, and links onward. Keep it short and task-oriented; move detail into `docs/`. |
+| `docs/using-this-template.md` | Consumers: one-time project setup — how to start (GitHub template vs. fork vs. clone), Worker naming, environment isolation, bindings, secrets, repository rules, upstream adoption. |
+| `docs/gitflow-and-branching.md` | Consumers: branches, pull requests, promotion, deployment gating, and rollback. |
+| `docs/versioning-and-changesets.md` | Consumers: recording changesets, the release pull request, cutting versions and tags. |
+| `docs/using-ai.md` | Consumers: how AI tooling is wired in — instruction files, MCP servers, the contract-test and human-gate guardrails, and how to adapt the instruction files downstream. |
+| `CONTRIBUTING.md` | Contributors to this template: prerequisites, TDD loop, required checks, changesets, instruction-file sync, pull request expectations. |
+| `CHANGELOG.md` | User-visible changes, migration notes, and release references where available. |
 
-Documentation must distinguish local emulation from deployed Cloudflare behavior. Do not call a local test equivalent to an integration test unless it actually exercises the relevant Cloudflare service.
+Keep these roles distinct rather than duplicating content: state a fact in one document and link to it from the others. When renaming, splitting, or adding a document, update every cross-reference, including the README documentation table and the instruction files.
+
+This repository is a real GitHub template repository, so "template" is accurate terminology. Documentation must distinguish the two consumption paths, because they are not equivalent: a repository created with **Use this template** shares no commit history with upstream, so `.github/workflows/upstream-sync.yml` cannot merge into it and upstream adoption is manual; a **fork** retains history and an upstream link, so the sync workflow works. Do not describe automatic flow-down for the template path.
+
+Documentation must also distinguish local emulation from deployed Cloudflare behavior. Do not call a local test equivalent to an integration test unless it actually exercises the relevant Cloudflare service.
 
 ## Versioning and release discipline
 
@@ -131,7 +145,7 @@ Every release should state:
 1. Read the relevant Cloudflare documentation and current local docs.
 2. State the behavior or contract being changed and add or update a focused test.
 3. Implement the smallest change consistent with existing patterns.
-4. Run focused tests, then JavaScript lint/format and configuration validation.
+4. Run focused tests, then JavaScript lint/format and configuration validation. Skip these for documentation-only Markdown changes and verify the documentation's accuracy instead.
 5. Review the generated diff for secrets, environment cross-wiring, accidental application-specific code, and unnecessary lockfile or config churn.
 6. Update README/guides, changelog, migration notes, and version metadata as required.
 7. Report commands run and any checks that could not run.

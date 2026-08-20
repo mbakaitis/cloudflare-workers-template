@@ -32,6 +32,12 @@ const workflowPaths = [
   new URL("../../.github/workflows/ci.yml", import.meta.url),
   new URL("../../.github/workflows/deploy.yml", import.meta.url),
 ];
+const nvmrcPath = new URL("../../.nvmrc", import.meta.url);
+const allWorkflowPaths = [
+  ...workflowPaths,
+  releaseWorkflowPath,
+  upstreamSyncWorkflowPath,
+];
 
 describe("deployment workflow contract", () => {
   it("requires explicit deployment opt-in", async () => {
@@ -43,13 +49,23 @@ describe("deployment workflow contract", () => {
     );
   });
 
-  it("exposes the authenticated GitHub MCP server in both config formats", async () => {
+  it("declares the same MCP servers in both config formats without credentials", async () => {
+    const expectedServers = {
+      "cloudflare-docs": "https://docs.mcp.cloudflare.com/mcp",
+      github: "https://api.githubcopilot.com/mcp/",
+    };
+
     for (const configPath of mcpConfigPaths) {
       const config = JSON.parse(await readFile(configPath, "utf8"));
       const servers = config.mcpServers ?? config.servers;
 
-      assert.equal(servers.github.type, "http");
-      assert.equal(servers.github.url, "https://api.githubcopilot.com/mcp/");
+      assert.deepEqual(Object.keys(servers).sort(), Object.keys(expectedServers).sort());
+
+      for (const [name, url] of Object.entries(expectedServers)) {
+        assert.equal(servers[name].type, "http");
+        assert.equal(servers[name].url, url);
+        assert.deepEqual(Object.keys(servers[name]).sort(), ["type", "url"]);
+      }
     }
   });
 
@@ -59,6 +75,21 @@ describe("deployment workflow contract", () => {
     assert.equal(packageJson.scripts.lint, "eslint .");
     assert.equal(packageJson.scripts["lint:fix"], "eslint . --fix");
     await readFile(eslintConfigPath, "utf8");
+  });
+
+  it("pins one supported Node.js version across tooling and CI", async () => {
+    const packageJson = JSON.parse(await readFile(packagePath, "utf8"));
+    const nvmrc = (await readFile(nvmrcPath, "utf8")).trim();
+
+    assert.match(nvmrc, /^\d+$/);
+    assert.equal(packageJson.engines.node, `>=${nvmrc}`);
+
+    for (const workflowPath of allWorkflowPaths) {
+      const workflow = await readFile(workflowPath, "utf8");
+
+      assert.match(workflow, /node-version-file:\s*\.nvmrc/);
+      assert.doesNotMatch(workflow, /node-version:\s*\d/);
+    }
   });
 
   it("defines the Changesets SemVer release contract", async () => {
