@@ -1,17 +1,61 @@
-# Setting Up a New Project
+# Using This Template
 
-Use this guide once, after creating a new project from this template. It covers repository ownership, the initial Git branches, Cloudflare targets, GitHub Actions, and the settings that cannot be represented by files in the fork.
+This guide takes you from "I want a new Worker" to "my project deploys to Cloudflare safely." Work through it once, when you create the project. For day-to-day work afterwards, use [Gitflow and branching](gitflow-and-branching.md) and [Versioning and changesets](versioning-and-changesets.md).
 
-## 1. Create and clone the repository
+It covers the things that files in your new repository cannot configure for you: repository ownership, branches, Cloudflare targets, GitHub Actions secrets, and repository rules.
 
-This template is the starting point; it does not need a real application name yet. First create the new GitHub repository that will contain your Worker project. Choose one of these approaches:
+## Choosing how to start
 
-- **Use this repository as a template:** In GitHub, select **Use this template**, choose the owner and repository name, and create the new repository. This is usually the simplest option for a new project.
-- **Fork this repository:** In GitHub, select **Fork**, choose the destination owner, and create the fork. Use this when you want the fork to retain a relationship with this upstream template.
+There are three ways to get these files, and they are not interchangeable. The difference is what relationship your project keeps with this repository.
 
-For example, if you create `acme-weather-api` under the GitHub organization `acme`, the repository address is `github.com/acme/acme-weather-api`. The repository name is your project name; it does not have to match the template name.
+| | Use this template | Fork | Clone only |
+| --- | --- | --- | --- |
+| Creates a GitHub repository for you | Yes | Yes | No |
+| Commit history | Fresh start, single initial commit | Full history of this repository | Full history, but no repository of your own |
+| Linked to this repository on GitHub | No | Yes, shown as "forked from" | No |
+| Automated upstream sync works | **No** | Yes | Not applicable |
+| Can open pull requests back to this repository | Not easily | Yes | No |
+| Best for | Real projects | Contributing upstream, or wanting automated sync | Evaluating the template |
 
-Once the GitHub repository exists, clone **that new repository** onto your computer. `git clone` downloads the repository and creates a local directory containing its files:
+### Use this template (recommended for real projects)
+
+Select **Use this template > Create a new repository**, then choose the owner, name, and visibility. Your project starts with a clean history that belongs to you, with no "forked from" relationship and no inherited issues or pull requests.
+
+Two consequences to plan for:
+
+- GitHub copies only the default branch unless you check **Include all branches**. You will create `develop` yourself in step 3 either way, since this repository does not carry one.
+- Your repository shares **no commit history** with this one. That means `.github/workflows/upstream-sync.yml` cannot merge upstream changes into it — Git refuses to merge unrelated histories. See [Keeping up with upstream changes](#8-keeping-up-with-upstream-changes) for how to adopt updates by hand.
+
+### Fork
+
+Select **Fork**, then choose the destination owner. Your project keeps this repository's full commit history and a live upstream link, so GitHub can compare the two and the automated sync workflow works out of the box.
+
+Trade-offs:
+
+- GitHub labels the repository as a fork, and a fork of a private repository stays private.
+- You get one fork per account for a given repository.
+- GitHub disables scheduled workflows in forks by default. Enable Actions in your fork, and expect to start the sync workflow with **Run workflow** on the Actions tab until you re-enable its schedule.
+
+Fork if you intend to send improvements back to this template, or if reviewing an automated upstream pull request each week is worth more to you than a clean history.
+
+### Clone only
+
+`git clone` copies the repository to your computer without creating anything on GitHub. Its `origin` remote still points at **this** repository, so you cannot push your work anywhere of your own, and pushing at all would target the template. Use this to read the code or run the tests before deciding.
+
+To turn a clone into a project later, create an empty repository on GitHub and repoint the remote:
+
+```sh
+git remote set-url origin https://github.com/YOUR-OWNER/YOUR-REPOSITORY.git
+git push -u origin main
+```
+
+This keeps the history but creates no fork link, so it behaves like the template path for upstream sync.
+
+## 1. Create and clone your repository
+
+Pick a path above and create the repository. The project name is yours; it does not have to resemble this template's name. For example, creating `acme-weather-api` under the organization `acme` gives you `github.com/acme/acme-weather-api`.
+
+Then clone **your** repository — not this one — and install dependencies:
 
 ```sh
 git clone https://github.com/acme/acme-weather-api.git
@@ -19,28 +63,30 @@ cd acme-weather-api
 npm install
 ```
 
-Replace `acme/acme-weather-api` with the owner and repository name you actually created.
+Replace `acme/acme-weather-api` with what you actually created. The `cd` command enters the directory `git clone` created, so run it only after cloning.
 
-The `cd` command enters the directory created by `git clone`; run it only after cloning. Keep the template's `.github/`, `docs/`, `src/`, `test/`, `package.json`, and `wrangler.jsonc` files unless the project has a deliberate alternative.
+Keep the `.github/`, `docs/`, `src/`, `test/`, `package.json`, and `wrangler.jsonc` files unless your project has a deliberate alternative.
 
-## 2. Configure the Worker names
+## 2. Name your Workers
 
-This step assigns the Cloudflare Worker resource names for the fork. These are not GitHub repository names, branch names, domains, or API tokens. A Worker name identifies a deployed Worker inside your Cloudflare account, so choose names that are unique and recognizable to your project.
-
-For example, if the project is an internal weather API, use a shared project slug with an environment suffix:
+This step assigns the Cloudflare Worker resource names for your project. These are not GitHub repository names, branch names, domains, or API tokens. A Worker name identifies a deployed Worker inside your Cloudflare account, so choose names that are unique and recognizable.
 
 | Wrangler field | Example value | Used for |
 | --- | --- | --- |
-| Top-level `name` | `acme-weather-api` | Default/local Wrangler configuration; also used if someone runs `wrangler deploy` without `--env` |
+| Top-level `name` | `acme-weather-api` | Local development; also used if someone runs `wrangler deploy` without `--env` |
 | `env.non-prod.name` | `acme-weather-api-non-prod` | The Worker deployed when `develop` changes |
 | `env.production.name` | `acme-weather-api-production` | The Worker deployed when `main` changes |
 
-Starting from the template's configuration:
+The template ships with:
 
 ```jsonc
 {
   "name": "cloudflare-workers-template",
   "main": "src/index.js",
+  "compatibility_date": "2026-08-18",
+  "observability": {
+    "enabled": true
+  },
   "env": {
     "non-prod": {
       "name": "cloudflare-workers-template-non-prod"
@@ -52,12 +98,16 @@ Starting from the template's configuration:
 }
 ```
 
-Change only the three `name` values. The resulting project configuration would be:
+Change only the three `name` values:
 
 ```jsonc
 {
   "name": "acme-weather-api",
   "main": "src/index.js",
+  "compatibility_date": "2026-08-18",
+  "observability": {
+    "enabled": true
+  },
   "env": {
     "non-prod": {
       "name": "acme-weather-api-non-prod"
@@ -69,22 +119,22 @@ Change only the three `name` values. The resulting project configuration would b
 }
 ```
 
-Use your own organization or project slug instead of `acme-weather-api`. Confirm in the Cloudflare dashboard that these names are available and that the non-production and production names refer to separate Workers. The top-level Worker is normally used for local development; the GitHub deployment workflow targets only the two named environments.
+Also update `name` in `package.json` so the package and the Worker agree. Confirm in the Cloudflare dashboard that these names are available and that the non-production and production names refer to separate Workers.
 
-Add bindings inside the matching environment only. For example, a non-production D1 database belongs under `env.non-prod`, while a production D1 database belongs under `env.production`. Never point non-production at production databases, buckets, queues, or other stateful resources.
+Leave `compatibility_date` alone unless you have a reason to move it, and treat any change to it as a deliberate, documented decision. `observability.enabled` captures logs and telemetry for the deployed Worker; keep it on.
 
-### Environment Isolation Enforcement
+Add bindings inside the matching environment only. A non-production D1 database belongs under `env.non-prod`; a production D1 database belongs under `env.production`. Never point non-production at production databases, buckets, queues, or other stateful resources. See [Adding environment-specific bindings](#adding-environment-specific-bindings).
 
-This template enforces environment isolation through **contract tests** that run as part of `npm test`. These tests verify:
+### Environment isolation is enforced
 
-- **Unique Worker names**: Each environment (top-level, `non-prod`, and `production`) must have a distinct Worker name.
-- **Clear naming convention**: The `non-prod` Worker name should include `non-prod`, `staging`, or `dev`; the `production` Worker name should include `production` or `prod`.
-- **No production bindings at top level**: Production-specific bindings (D1 databases, R2 buckets, KV namespaces, etc.) must not be configured in the top-level Wrangler configuration.
-- **Environment structure**: The configuration must define separate `env.non-prod` and `env.production` sections.
+Isolation is not just advice here — **contract tests** run as part of `npm test` and verify:
 
-These contract tests catch accidental misconfiguration. For example, if you accidentally assign the same name to `env.non-prod` and `env.production`, or if you configure a production database reference at the top level, `npm test` will fail and alert you before you deploy.
+- **Unique Worker names.** The top-level, `non-prod`, and `production` Workers must all have distinct names.
+- **Clear naming.** The `non-prod` name should contain `non-prod`, `staging`, or `dev`; the `production` name should contain `production` or `prod`.
+- **No production bindings at the top level.** D1 databases, R2 buckets, KV namespaces, and similar bindings must not sit in the top-level configuration.
+- **Environment structure.** The configuration must define separate `env.non-prod` and `env.production` sections.
 
-To verify isolation locally:
+So if you give `env.non-prod` and `env.production` the same name, or attach a database at the top level, `npm test` fails before you can deploy. Verify locally with:
 
 ```sh
 npm test
@@ -92,7 +142,7 @@ npx wrangler deploy --dry-run --env non-prod
 npx wrangler deploy --dry-run --env production
 ```
 
-Run these commands to confirm that each environment targets the correct Worker and resources.
+The dry runs report what each environment would deploy and bind, without deploying anything.
 
 ## 3. Create the Git branches
 
@@ -105,29 +155,29 @@ git switch -c develop
 git push -u origin develop
 ```
 
-If the repository starts on another default branch, rename it to `main` before running these commands. Use `feature/<name>` for local work. The allowed branch-name pattern also permits `release/<name>` and `hotfix/<name>` for short-lived coordination branches.
+If your repository starts on a different default branch, rename it to `main` first. Use `feature/<name>` for day-to-day work; `release/<name>` and `hotfix/<name>` are also permitted for short-lived coordination branches.
 
 ## 4. Configure GitHub environments and secrets
 
-The deployment workflow is disabled by default. This protects the template repository and newly created forks from attempting Cloudflare deployments before a Worker, account, and credentials have been deliberately configured.
+Deployment is disabled by default. This is what stops a brand-new project from attempting a Cloudflare deployment before a Worker, an account, and credentials exist.
 
 Create these GitHub Actions environments:
 
-- `non-prod`, restricted to the `develop` branch
-- `production`, restricted to the `main` branch, with required reviewers enabled
+- `non-prod`, restricted to the `develop` branch.
+- `production`, restricted to the `main` branch, with required reviewers enabled.
 
 Add these secrets at repository or environment scope:
 
-- `CLOUDFLARE_API_TOKEN`: a least-privilege token that can deploy the two Workers
-- `CLOUDFLARE_ACCOUNT_ID`: the Cloudflare account containing those Workers
+- `CLOUDFLARE_API_TOKEN` — a least-privilege token that can deploy your two Workers.
+- `CLOUDFLARE_ACCOUNT_ID` — the Cloudflare account containing them.
 
-`DEPLOY_ENABLED` is intentionally a repository **variable**, not a secret. It contains no sensitive value; it is only the explicit deployment opt-in. After the Worker names, environments, and Cloudflare secrets are ready, add `DEPLOY_ENABLED` with the value `true` under **Settings > Secrets and variables > Actions > Variables**. Do not add it to the template repository. Without it, the deploy job is skipped and no Cloudflare credentials are used.
+Then, and only then, enable deployment. `DEPLOY_ENABLED` is deliberately a repository **variable**, not a secret: it holds no sensitive value and exists purely as the explicit opt-in. Add it with the value `true` under **Settings > Secrets and variables > Actions > Variables**. Until it exists, the deploy job is skipped and no Cloudflare credentials are used.
 
-Do not commit these values or place them in `.env`, `.dev.vars`, or generated files.
+Never commit these values or put them in `.env`, `.dev.vars`, or generated files.
 
-## 5. Apply repository rules
+## 5. Apply the repository rules
 
-The files in `.github/rulesets/` are API-ready descriptions of the intended GitHub rules. Apply both through GitHub repository Settings or the ruleset API:
+The files in `.github/rulesets/` describe the intended GitHub rules but do not apply themselves. Import both through repository **Settings > Rules**, or through the API:
 
 ```sh
 gh api --method POST /repos/OWNER/REPOSITORY/rulesets \
@@ -136,11 +186,13 @@ gh api --method POST /repos/OWNER/REPOSITORY/rulesets \
   --input .github/rulesets/gitflow-protected-branches.json
 ```
 
-Replace `OWNER/REPOSITORY`. Confirm that the required status check is named `test`, matching the CI job in `.github/workflows/ci.yml`. Review the resulting rules in GitHub because organization policy or plan availability can modify what is accepted.
+Replace `OWNER/REPOSITORY`. Confirm the required status check is named `test`, matching the CI job in `.github/workflows/ci.yml`. Review the resulting rules in GitHub afterwards, because organization policy and plan availability can change what is accepted.
+
+The intended policy: protect `develop` and `main` from direct pushes, deletion, force-pushes, and merges without a pull request and passing CI; require at least one approving review and resolved review threads; leave feature branches unprotected apart from the naming rule.
 
 ## 6. Verify the deployment path
 
-Create a small feature branch and open a pull request into `develop`:
+Prove the whole path works before you rely on it. Create a small feature branch and open a pull request into `develop`:
 
 ```sh
 git switch -c feature/verify-gitflow
@@ -149,53 +201,83 @@ npm test
 git push -u origin feature/verify-gitflow
 ```
 
-After merging into `develop`, verify the non-production Worker. Then open a pull request from `develop` to `main`. After the production environment approval, verify the production Worker.
+After merging into `develop`, check the non-production Worker. Then open a pull request from `develop` into `main`; after the production environment approval, check the production Worker.
 
-The deploy workflow does not run for feature branches. Local development uses `npm run dev`; only merges to `develop` and `main` deploy through GitHub Actions.
+The deploy workflow never runs for feature branches. Local work uses `npm run dev`; only merges to `develop` and `main` deploy.
 
-## 7. Configure releases
+## 7. Releases
 
-Changesets is already configured for this private template. Keep the `.changeset/` directory and `.github/workflows/release.yml` when creating a fork. For a contract change, run `npm run changeset`, choose the SemVer increment, and commit the generated changeset with the pull request. The workflow on `main` creates a release pull request and tags the version after that pull request is merged. It does not publish the private package to npm.
+Changesets is already configured. Keep the `.changeset/` directory and `.github/workflows/release.yml`. For a change that affects your project's contract, run `npm run changeset`, choose the SemVer increment, and commit the generated file with your pull request. Merging to `main` opens a release pull request; merging that versions the package and creates a tag. It does not publish to npm.
 
-If a fork changes package visibility or wants npm publication, update the Changesets `access` and `privatePackages` settings, add the required registry authentication, and review the workflow before enabling publication. Do not add registry credentials to the repository.
+If your project makes the package public or wants npm publication, update the Changesets `access` and `privatePackages` settings, add registry authentication through CI secrets, and review the workflow before enabling publication. Do not put registry credentials in the repository.
 
-## 8. Configure upstream sync
+Full details are in [Versioning and changesets](versioning-and-changesets.md).
 
-Forks can use `.github/workflows/upstream-sync.yml` to propose template updates without overwriting application code. The workflow runs weekly and can also be started manually from the Actions tab. It fetches `main` from the configured upstream repository, merges it into a temporary `upstream-sync` branch, runs `npm run lint` and `npm test`, and opens a pull request when there are changes.
+## 8. Keeping up with upstream changes
 
-Set the repository Actions **variable** `UPSTREAM_REPOSITORY` to the upstream owner and repository, for example `mbakaitis/workers`. The workflow defaults to this template repository when the variable is unset. Do not put credentials in the variable; public upstream repositories are fetched over HTTPS.
+How you adopt template updates depends on the path you chose in [Choosing how to start](#choosing-how-to-start).
 
-The workflow is intentionally review-only. A merge conflict or failing downstream-specific test stops the workflow and does not create an adoption pull request. Review the generated pull request for application-specific bindings, configuration, and migration notes before merging. GitHub retains the previous commit, so rollback remains a reviewed revert or a deployment of the previous successful commit.
+### If you forked
+
+`.github/workflows/upstream-sync.yml` does the work. It runs weekly and on demand from the Actions tab, fetches `main` from the configured upstream, merges it into a temporary `upstream-sync` branch, runs your `npm run lint` and `npm test`, and opens a pull request only if everything passes.
+
+Set the repository Actions **variable** `UPSTREAM_REPOSITORY` to the upstream owner and repository, for example `mbakaitis/workers`. The workflow falls back to this template when the variable is unset. Do not put credentials in it; public upstream repositories are fetched over HTTPS.
+
+The workflow is intentionally review-only. A merge conflict or a failing project-specific test stops it and produces no pull request — that is the signal to sync by hand. Review every generated pull request for your own bindings, configuration, and migration notes before merging.
+
+### If you used the template
+
+The sync workflow cannot merge into your repository, because there is no shared history. Adopt changes deliberately instead. Add this repository as a second remote once:
+
+```sh
+git remote add upstream https://github.com/mbakaitis/workers.git
+git fetch upstream
+```
+
+Then pick up individual changes. `git cherry-pick` works across unrelated histories:
+
+```sh
+git log --oneline upstream/main
+git cherry-pick <commit>
+```
+
+Or review a single file before copying anything:
+
+```sh
+git diff HEAD upstream/main -- .github/workflows/ci.yml
+```
+
+Read this template's `CHANGELOG.md` for each release to see what changed and whether it requires migration. If you remove `.github/workflows/upstream-sync.yml` because you cannot use it, also remove the assertion that covers it in `test/contracts/workflow.test.js`, or your own contract tests will fail.
+
+### Either way
+
+Rollback is a reviewed revert or a deployment of the previous successful commit. Never hot-edit production code in the Cloudflare dashboard.
 
 ## Setup is complete when
 
-- `main` and `develop` exist on the remote.
+- `main` and `develop` both exist on your remote.
 - Branch rules prevent direct changes to `main` and `develop`.
-- The `non-prod` and `production` GitHub environments have the correct branch restrictions.
-- The two Worker names and their bindings are separate and intentional.
+- The `non-prod` and `production` GitHub environments have the correct branch restrictions, and `production` requires a reviewer.
+- Your three Worker names are distinct, and any bindings are environment-specific and intentional.
+- `npm test` passes, including the contract tests.
 - A merge to `develop` deploys non-production, and an approved merge to `main` deploys production.
 
-## Adding Environment-Specific Bindings
+## Adding environment-specific bindings
 
-As your project grows, you will need to add Cloudflare resources (D1 databases, R2 buckets, KV namespaces, Queues, Durable Objects, etc.) to your Workers. The key principle is: **bindings must be placed in the environment they serve, never at the top level**.
+As your project grows you will add Cloudflare resources — D1 databases, R2 buckets, KV namespaces, Queues, Durable Objects. One rule governs all of them: **a binding goes in the environment it serves, never at the top level.**
 
-### Core Rule
+### The rule
 
-**Do not add bindings to the top-level Wrangler configuration.** All bindings—regardless of service type—must be placed inside `env.non-prod` or `env.production`.
+All bindings, regardless of service type, belong inside `env.non-prod` or `env.production`. The contract tests verify this automatically.
 
-The contract tests verify this structure automatically.
+When adding a resource:
 
-### General Pattern
+1. Create it in your Cloudflare account.
+2. Add it to the matching `env` section in `wrangler.jsonc`.
+3. Give it a distinct, environment-aware name, such as `my-api-non-prod` versus `my-api-production`.
 
-When adding any Cloudflare resource binding:
+**Incorrect** — a binding at the top level, which fails the contract tests:
 
-1. Create the resource in your Cloudflare account.
-2. Add it to the appropriate `env` section in `wrangler.jsonc`:
-   - Non-production resources go in `env.non-prod`
-   - Production resources go in `env.production`
-3. Use distinct, environment-aware names (e.g., `my-api-non-prod` vs. `my-api-production`).
-
-**Incorrect** (binding at top level—will fail contract tests):
 ```jsonc
 {
   "name": "my-worker",
@@ -208,7 +290,8 @@ When adding any Cloudflare resource binding:
 }
 ```
 
-**Correct** (environment sections with no services yet):
+**Correct** — environment sections ready for bindings:
+
 ```jsonc
 {
   "name": "my-worker",
@@ -227,7 +310,8 @@ When adding any Cloudflare resource binding:
 }
 ```
 
-**Correct** (with a service binding example):
+**Correct** — the same binding name pointing at separate resources per environment:
+
 ```jsonc
 {
   "name": "my-worker",
@@ -256,30 +340,25 @@ When adding any Cloudflare resource binding:
 }
 ```
 
-### Validation Workflow
+Your Worker code reads `env.DB` in both cases; only the underlying resource differs. Document each binding you add with JSDoc in `src/index.js` — this project is plain JavaScript and deliberately does not generate TypeScript binding types. If you want editor autocomplete for bindings in your own project, `npx wrangler types` will generate them on demand, but nothing here requires it.
 
-1. **Run contract tests** to catch structural issues:
+### Validating a binding change
+
+1. **Run the contract tests** to catch structural mistakes:
+
    ```sh
    npm test
    ```
-   This verifies that all bindings are in the correct environment sections and Worker names are unique.
 
-2. **Test each environment** before merging:
+2. **Dry-run both environments** before merging:
+
    ```sh
    npx wrangler deploy --dry-run --env non-prod
    npx wrangler deploy --dry-run --env production
    ```
-   Review the output to confirm each environment binds the correct resources.
 
-3. **Review in pull request** to catch logical errors:
-   - Verify resource IDs are distinct between environments (use Cloudflare dashboard if unsure).
-   - Confirm no cross-environment references exist.
-   - Check that environment-aware naming is consistent and clear.
+   Confirm each environment binds the resources you expect.
 
-### Preventing Accidental Violations
+3. **Review in the pull request** to catch logical mistakes: resource IDs genuinely distinct between environments, no cross-environment references, consistent naming.
 
-- **Never** copy a resource ID from production into non-production, or vice versa.
-- **Never** add a binding to the top-level configuration by mistake.
-- **Always** run `npm test` and both dry-run deployments before committing.
-
-The contract tests catch structural mistakes; careful naming and human review catch logical mistakes.
+Never copy a resource ID from production into non-production or the reverse. The contract tests catch structural mistakes; naming discipline and human review catch logical ones.

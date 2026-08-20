@@ -13,6 +13,9 @@
   "author": "Matt Bakaitis <matt@bakaitis.com>",
   "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "wrangler dev",
     "lint": "eslint .",
