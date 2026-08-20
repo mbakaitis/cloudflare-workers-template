@@ -12,6 +12,19 @@ Minimal, forkable Cloudflare Workers boilerplate with local Vitest testing and a
 
 Use [docs/gitflow.md](docs/gitflow.md) for the ongoing branch and promotion workflow. Use [docs/project-setup.md](docs/project-setup.md) when creating and configuring a new fork. API-ready ruleset payloads are in `.github/rulesets/`.
 
+## Releases
+
+This private template uses Changesets for Semantic Versioning. For every behavior or workflow change, add a changeset on the feature branch:
+
+```sh
+npm run changeset
+npm run changeset:status
+```
+
+Select `patch`, `minor`, or `major` according to the contract change, and commit the generated file with the pull request. Merges to `main` run `.github/workflows/release.yml`, which opens or updates a release pull request. Merging that release pull request runs `npm run version` and creates a Git tag with `npm run release`; it does not publish this private package to npm.
+
+Documentation-only changes and changes that do not affect the template contract may omit a changeset. See [docs/gitflow.md](docs/gitflow.md) for the release checklist and downstream fork guidance.
+
 ## Development
 
 Install dependencies and run the Worker locally:

@@ -153,6 +153,12 @@ After merging into `develop`, verify the non-production Worker. Then open a pull
 
 The deploy workflow does not run for feature branches. Local development uses `npm run dev`; only merges to `develop` and `main` deploy through GitHub Actions.
 
+## 7. Configure releases
+
+Changesets is already configured for this private template. Keep the `.changeset/` directory and `.github/workflows/release.yml` when creating a fork. For a contract change, run `npm run changeset`, choose the SemVer increment, and commit the generated changeset with the pull request. The workflow on `main` creates a release pull request and tags the version after that pull request is merged. It does not publish the private package to npm.
+
+If a fork changes package visibility or wants npm publication, update the Changesets `access` and `privatePackages` settings, add the required registry authentication, and review the workflow before enabling publication. Do not add registry credentials to the repository.
+
 ## Setup is complete when
 
 - `main` and `develop` exist on the remote.

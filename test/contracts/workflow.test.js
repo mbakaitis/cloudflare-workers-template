@@ -19,6 +19,11 @@ const mcpConfigPaths = [
 ];
 const packagePath = new URL("../../package.json", import.meta.url);
 const eslintConfigPath = new URL("../../eslint.config.js", import.meta.url);
+const changesetConfigPath = new URL("../../.changeset/config.json", import.meta.url);
+const releaseWorkflowPath = new URL(
+  "../../.github/workflows/release.yml",
+  import.meta.url,
+);
 const workflowPaths = [
   new URL("../../.github/workflows/ci.yml", import.meta.url),
   new URL("../../.github/workflows/deploy.yml", import.meta.url),
@@ -50,6 +55,23 @@ describe("deployment workflow contract", () => {
     assert.equal(packageJson.scripts.lint, "eslint .");
     assert.equal(packageJson.scripts["lint:fix"], "eslint . --fix");
     await readFile(eslintConfigPath, "utf8");
+  });
+
+  it("defines the Changesets SemVer release contract", async () => {
+    const packageJson = JSON.parse(await readFile(packagePath, "utf8"));
+    const changesetConfig = JSON.parse(await readFile(changesetConfigPath, "utf8"));
+    const releaseWorkflow = await readFile(releaseWorkflowPath, "utf8");
+
+    assert.equal(packageJson.scripts.changeset, "changeset");
+    assert.equal(packageJson.scripts["changeset:status"], "changeset status");
+    assert.equal(packageJson.scripts.version, "changeset version");
+    assert.equal(packageJson.scripts.release, "changeset tag");
+    assert.equal(changesetConfig.baseBranch, "main");
+    assert.equal(changesetConfig.privatePackages.version, true);
+    assert.match(releaseWorkflow, /branches:\s*\n\s*- main/);
+    assert.match(releaseWorkflow, /fetch-depth:\s*0/);
+    assert.match(releaseWorkflow, /changesets\/action@v1/);
+    assert.match(releaseWorkflow, /version:\s*npm run version/);
   });
 
   it("keeps linting in the CI and deployment quality gates", async () => {
