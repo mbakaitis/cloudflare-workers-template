@@ -8,6 +8,7 @@
 
 ## Unreleased
 
+- Add a scheduled and manually triggered upstream sync workflow that proposes reviewed fork updates and runs downstream checks before adoption.
 - Operationalize SemVer releases with Changesets configuration, scripts, contract coverage, and a `main`-branch release workflow that creates version tags for the private template.
 - Enable Cloudflare Workers best practices: add observability logging to Wrangler configuration for automatic telemetry capture.
 - Add `npm run types` script to generate TypeScript types for Worker bindings and runtime APIs using `wrangler types`.
