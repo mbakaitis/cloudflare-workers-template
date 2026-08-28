@@ -168,12 +168,37 @@ Create these GitHub Actions environments:
 
 Add these secrets at repository or environment scope:
 
-- `CLOUDFLARE_API_TOKEN` — a least-privilege token that can deploy your two Workers.
-- `CLOUDFLARE_ACCOUNT_ID` — the Cloudflare account containing them.
+- `CLOUDFLARE_API_TOKEN` — see [Creating the API token](#creating-the-api-token) below.
+- `CLOUDFLARE_ACCOUNT_ID` — the Cloudflare account containing them. Find it on the Workers & Pages overview page in the dashboard.
 
-Then, and only then, enable deployment. `DEPLOY_ENABLED` is deliberately a repository **variable**, not a secret: it holds no sensitive value and exists purely as the explicit opt-in. Add it with the value `true` under **Settings > Secrets and variables > Actions > Variables**. Until it exists, the deploy job is skipped and no Cloudflare credentials are used.
+Then, and only then, enable deployment. `DEPLOY_ENABLED` is deliberately a repository **variable**, not a secret: it holds no sensitive value and exists purely as the explicit opt-in. Add it with the value `true` under **Settings > Secrets and variables > Actions > Variables**.
+
+Setting `DEPLOY_ENABLED` does not deploy anything by itself — it only removes the guard inside a step that already exists in [.github/workflows/deploy.yml](../.github/workflows/deploy.yml). `deploy.yml` triggers on `push` to `main` or `develop`; a repository variable change is not a push, so it does not start a run. The next push or merge to `develop` or `main` is what actually deploys — the sequence in that run is: checkout, install, lint, test, and only if all of that passes and `DEPLOY_ENABLED` is `true`, `wrangler deploy --env non-prod` (from `develop`) or `--env production` (from `main`, after the `production` environment's required reviewer approves). If you enabled the flag without a fresh push already queued, merge or push once more to trigger the first real deployment. Until `DEPLOY_ENABLED` exists, the deploy job is skipped every time and no Cloudflare credentials are used.
 
 Never commit these values or put them in `.env`, `.dev.vars`, or generated files.
+
+### Creating the API token
+
+Create the token at **My Profile > API Tokens > Create Token** in the Cloudflare dashboard, using **Custom Token**, not a predefined template — the predefined "Edit Cloudflare Workers" and "Workers Builds" templates grant more than this workflow needs (KV/R2 storage edit, zone-wide Workers Routes edit) because they're built for the dashboard's own Git integration, which this template does not use (see [above](#do-not-also-connect-the-repository-in-the-cloudflare-dashboard)).
+
+For the base template with no bindings, add a single permission:
+
+| Scope | Permission |
+| --- | --- |
+| Account | Workers Scripts — Edit |
+
+Restrict the token to your account under **Account Resources**. This is sufficient for `wrangler deploy` to create and update both Workers by name — the workflow already supplies `CLOUDFLARE_ACCOUNT_ID` explicitly, so the token does not need account-listing permissions.
+
+As you add bindings (see [Adding environment-specific bindings](#adding-environment-specific-bindings)), add the matching Edit permission to this same token — for example, **Workers R2 Storage — Edit** for an R2 bucket, or **Workers KV Storage — Edit** for a KV namespace. A deploy that references a binding your token cannot manage fails with an authorization error at deploy time, not at token-creation time, so update the token in the same pull request that adds the binding.
+
+### Do not also connect the repository in the Cloudflare dashboard
+
+Cloudflare offers a separate feature called [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/) (**Settings > Builds > Connect** on a Worker in the dashboard) that watches a GitHub or GitLab repository and deploys on every push, independent of GitHub Actions. This template does not use it, and connecting a Worker this way conflicts with the workflow above:
+
+- Workers Builds runs its own deploy command (`npx wrangler deploy` by default) on every push to the branch you connect. It does not know about the `production` environment's required reviewers, `DEPLOY_ENABLED`, or this repository's lint and test gates — it would deploy regardless of whether they pass.
+- Both mechanisms would target the same Worker names from the same pushes, so you cannot tell which system produced a given deployment.
+
+Leave your Workers unconnected in the dashboard. `.github/workflows/deploy.yml` is the only deployment path this template's contract tests and documentation assume.
 
 ## 5. Configure branch protection
 

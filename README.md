@@ -46,7 +46,7 @@ This is a GitHub template repository. Create your own project from it, then add 
    git push -u origin develop
    ```
 
-7. **Turn on deployment when you are ready.** Configure the Cloudflare secrets and protected GitHub environments, then set the `DEPLOY_ENABLED` Actions variable to `true`.
+7. **Turn on deployment when you are ready.** Configure the Cloudflare API token and account ID as secrets, set up the protected GitHub environments, then set the `DEPLOY_ENABLED` Actions variable to `true`. This flag does not deploy anything by itself — it only unblocks the deploy job for the *next* push to `develop` or `main`. See [Configure GitHub environments and secrets](docs/using-this-template.md#4-configure-github-environments-and-secrets) for the exact token permission and the full trigger sequence.
 
 Steps 3, 6, and 7 have details that matter — bindings, secrets, branch protection, and environment isolation. Work through [Using this template](docs/using-this-template.md) before your first deployment.
 
@@ -72,6 +72,8 @@ Local development uses the top-level Wrangler configuration and never deploys a 
 Merges to `develop` deploy the non-production Worker; merges to `main` deploy production after an environment approval gate. Both are skipped until the GitHub Actions repository **variable** `DEPLOY_ENABLED` is set to `true`. That flag is not a secret — it is only the explicit opt-in, which keeps this template and unconfigured projects from ever contacting Cloudflare. The Cloudflare API token and account ID remain GitHub secrets.
 
 You can also deploy from your machine with `npm run deploy:non-prod` or `npm run deploy:production`, but the reviewed GitHub Actions path is the intended route to production.
+
+Do not connect a Worker to this repository through the Cloudflare dashboard's **Settings > Builds** ("Workers Builds" Git integration). That is a separate auto-deploy mechanism that bypasses this workflow's environment approvals and test gates. See [Do not also connect the repository in the Cloudflare dashboard](docs/using-this-template.md#do-not-also-connect-the-repository-in-the-cloudflare-dashboard).
 
 ## Documentation
 
