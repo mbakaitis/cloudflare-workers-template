@@ -219,7 +219,7 @@ Go to **Settings > Rules > Rulesets > New branch ruleset** (classic **Settings >
 | ↳ Status check | `test` | Matches the job name in `.github/workflows/ci.yml` |
 | ↳ Require branches to be up to date before merging | On | No merging around a stale base |
 
-Do not add a `branch_name_pattern` rule. See [Gitflow and branching](gitflow-and-branching.md#branches-and-what-they-deploy) for why: it requires GitHub Team or Enterprise and is rejected outright on Free and Pro. Branch naming stays enforced through code review.
+Do not add a `branch_name_pattern` rule. See [Gitflow and branching](gitflow-and-branching.md#our-approach-to-branches) for why: it requires GitHub Team or Enterprise and is rejected outright on Free and Pro. Branch naming stays enforced through code review.
 
 After saving, confirm it actually took effect — `gh api repos/OWNER/REPOSITORY/rulesets` — and check that the ruleset's `enforcement` is `"active"` and its `rules` array contains everything in the table above. Re-check after any change to organization policy or plan.
 
