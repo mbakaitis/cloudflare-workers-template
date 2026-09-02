@@ -154,7 +154,7 @@ That is a separate auto-deploy mechanism that bypasses this workflow's environme
 
 | Document | Read it when |
 | --- | --- |
-| [Using this template](docs/using-this-template.md) | Starting a project: choosing template vs. fork vs. clone, naming Workers, bindings, secrets, repository rules |
+| [Using this template](docs/using-this-template.md) | Starting a project: choosing template vs. clone, naming Workers, bindings, secrets, repository rules |
 | [Gitflow and branching](docs/gitflow-and-branching.md) | Day-to-day branching, pull requests, promotion, and rollback |
 | [Versioning and changesets](docs/versioning-and-changesets.md) | Cutting a version, understanding the release pull request and tags |
 | [Using AI with this template](docs/using-ai.md) | Working with AI assistants: instruction files, MCP servers, and the guardrails |

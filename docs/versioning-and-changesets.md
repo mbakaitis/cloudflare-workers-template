@@ -37,7 +37,7 @@ npm run changeset:status
 
 Ask what a downstream project has to do. If the answer is "nothing," it is a patch or a minor. If the answer is "edit files, rename something, or change a command," it is major.
 
-A changeset is not required for changes that are purely internal and do not alter the forkable template contract. Documentation-only changes may omit one.
+A changeset is not required for changes that are purely internal and do not alter the template contract. Documentation-only changes may omit one.
 
 ## The release pull request
 

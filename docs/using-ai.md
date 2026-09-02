@@ -29,7 +29,7 @@ Three files carry the same guidance for different tools:
 
 `claude.md` is the full maintenance guide. The other two are shorter entry points that must stay consistent with it — they exist because different tools look for different filenames, not because they say different things.
 
-They carry an **instruction contract version** in their headers, separate from the package version, so a change in expectations is visible and reviewable rather than silent. If you change guidance in one file, change all three and bump that version. See [Versioning and changesets](versioning-and-changesets.md#two-version-numbers).
+They carry an **instruction contract version** in their headers, separate from the package version, so a change in expectations is visible and reviewable rather than silent. If you change guidance in one file, we suggest you change all three and bump that version. See [Versioning and changesets](versioning-and-changesets.md#two-version-numbers).
 
 ### Adapt them for your project
 
@@ -63,7 +63,7 @@ Instruction files are advisory. These are not.
 - Non-production and production Workers must have distinct names.
 - Production bindings must not sit in the top-level Wrangler configuration.
 - Deployment must stay behind the explicit `DEPLOY_ENABLED` opt-in.
-- The release and upstream-sync workflows must keep their reviewed shape.
+- The release workflow must keep its reviewed shape.
 - One Node.js version, declared in one place.
 
 This is the layer that makes AI assistance safe here. An assistant that suggests pointing non-production at a production database does not produce a subtle bug for a reviewer to catch six weeks later — it produces a failing test, immediately, before anything is deployed. When a contract test fails, that is the system working.

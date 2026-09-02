@@ -6,41 +6,26 @@ It covers the things that files in your new repository cannot configure for you:
 
 ## 0. Choosing how to start
 
-There are three ways to get these files, and they are not interchangeable. The difference is what relationship your project keeps with this repository.
+There are two ways to get these files, and the difference that matters is what your project's commit history looks like afterward.
 
-| | Use this template | Fork | Clone only |
-| --- | --- | --- | --- |
-| Creates a GitHub repository for you | Yes | Yes | No |
-| Commit history | Fresh start, single initial commit | Full history of this repository | Full history, but no repository of your own |
-| Linked to this repository on GitHub | No | Yes, shown as "forked from" | No |
-| Automated upstream sync works | **No** | Yes | Not applicable |
-| Can open pull requests back to this repository | Not easily | Yes | No |
-| Best for | Real projects | Contributing upstream, or wanting automated sync | Evaluating the template |
+| | Use this template | Clone only |
+| --- | --- | --- |
+| Creates a GitHub repository for you | Yes | No |
+| Commit history | Fresh start, single initial commit | Full history of this repository, but no repository of your own until you repoint it |
+| Linked to this repository on GitHub | No | No |
+| Best for | Real projects | Evaluating the template, or preserving history to cherry-pick from later |
+
+Neither path merges upstream changes into your repository automatically — see [Keeping up with upstream changes](#8-keeping-up-with-upstream-changes) for how to adopt them deliberately either way.
 
 ### Use this template (recommended for real projects)
 
-Select **Use this template > Create a new repository**, then choose the owner, name, and visibility. Your project starts with a clean history that belongs to you, with no "forked from" relationship and no inherited issues or pull requests.
+Select **Use this template > Create a new repository**, then choose the owner, name, and visibility. Your project starts with a clean, single-commit history that belongs to you: no inherited commits, issues, or pull requests from this repository, and nothing for a new contributor to page through when they run `git log`. This is the leaner of the two paths.
 
-Two consequences to plan for:
-
-- GitHub copies only the default branch unless you check **Include all branches**. You will create `develop` yourself in step 3 either way, since this repository does not carry one.
-- Your repository shares **no commit history** with this one. That means `.github/workflows/upstream-sync.yml` cannot merge upstream changes into it — Git refuses to merge unrelated histories. See [Keeping up with upstream changes](#8-keeping-up-with-upstream-changes) for how to adopt updates by hand.
-
-### Fork
-
-Select **Fork**, then choose the destination owner. Your project keeps this repository's full commit history and a live upstream link, so GitHub can compare the two and the automated sync workflow works out of the box.
-
-Trade-offs:
-
-- GitHub labels the repository as a fork, and a fork of a private repository stays private.
-- You get one fork per account for a given repository.
-- GitHub disables scheduled workflows in forks by default. Enable Actions in your fork, and expect to start the sync workflow with **Run workflow** on the Actions tab until you re-enable its schedule.
-
-Fork if you intend to send improvements back to this template, or if reviewing an automated upstream pull request each week is worth more to you than a clean history.
+One consequence to plan for: GitHub copies only the default branch unless you check **Include all branches**. You will create `develop` yourself in step 3 either way, since this repository does not carry one.
 
 ### Clone only
 
-`git clone` copies the repository to your computer without creating anything on GitHub. Its `origin` remote still points at **this** repository, so you cannot push your work anywhere of your own, and pushing at all would target the template. Use this to read the code or run the tests before deciding.
+`git clone` copies this repository's full commit history to your computer without creating anything on GitHub. Its `origin` remote still points at **this** repository, so you cannot push your work anywhere of your own, and pushing at all would target the template. Use this to read the code or run the tests before deciding, or because you specifically want that history available locally (for example, to `git cherry-pick` a later template commit instead of reapplying it by hand).
 
 To turn a clone into a project later, create an empty repository on GitHub and repoint the remote:
 
@@ -49,7 +34,7 @@ git remote set-url origin https://github.com/YOUR-OWNER/YOUR-REPOSITORY.git
 git push -u origin main
 ```
 
-This keeps the history but creates no fork link, so it behaves like the template path for upstream sync.
+This carries the full history into your new repository, which is heavier than **Use this template** but keeps every commit.
 
 ## 1. Create and clone your repository
 
@@ -248,26 +233,14 @@ Full details are in [Versioning and changesets](versioning-and-changesets.md).
 
 ## 8. Keeping up with upstream changes
 
-How you adopt template updates depends on the path you chose in [Choosing how to start](#choosing-how-to-start).
-
-### If you forked
-
-`.github/workflows/upstream-sync.yml` does the work. It runs weekly and on demand from the Actions tab, fetches `main` from the configured upstream, merges it into a temporary `upstream-sync` branch, runs your `npm run lint` and `npm test`, and opens a pull request only if everything passes.
-
-Set the repository Actions **variable** `UPSTREAM_REPOSITORY` to the upstream owner and repository, for example `mbakaitis/workers`. The workflow falls back to this template when the variable is unset. Do not put credentials in it; public upstream repositories are fetched over HTTPS.
-
-The workflow is intentionally review-only. A merge conflict or a failing project-specific test stops it and produces no pull request — that is the signal to sync by hand. Review every generated pull request for your own bindings, configuration, and migration notes before merging.
-
-### If you used the template
-
-The sync workflow cannot merge into your repository, because there is no shared history. Adopt changes deliberately instead. Add this repository as a second remote once:
+Nothing merges upstream changes into your repository automatically, regardless of which path you chose in [Choosing how to start](#0-choosing-how-to-start). Adopt them deliberately instead. Add this repository as a second remote once:
 
 ```sh
 git remote add upstream https://github.com/mbakaitis/workers.git
 git fetch upstream
 ```
 
-Then pick up individual changes. `git cherry-pick` works across unrelated histories:
+Then pick up individual changes. `git cherry-pick` works whether or not your repository shares history with this one:
 
 ```sh
 git log --oneline upstream/main
@@ -280,9 +253,7 @@ Or review a single file before copying anything:
 git diff HEAD upstream/main -- .github/workflows/ci.yml
 ```
 
-Read this template's `CHANGELOG.md` for each release to see what changed and whether it requires migration. If you remove `.github/workflows/upstream-sync.yml` because you cannot use it, also remove the assertion that covers it in `test/contracts/workflow.test.js`, or your own contract tests will fail.
-
-### Either way
+Read this template's `CHANGELOG.md` for each release to see what changed and whether it requires migration.
 
 Rollback is a reviewed revert or a deployment of the previous successful commit. Never hot-edit production code in the Cloudflare dashboard.
 

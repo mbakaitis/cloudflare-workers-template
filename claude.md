@@ -1,8 +1,8 @@
 # Cloudflare Workers Template Maintainer Guide
 
-**Instruction contract version:** 1.3.0
+**Instruction contract version:** 2.0.0
 
-This repository is the versioned boilerplate for Cloudflare Workers. It must remain useful when copied or forked into a new Worker project and must make future Cloudflare, Wrangler, and platform changes deliberate, testable, and documented.
+This repository is the versioned boilerplate for Cloudflare Workers. It must remain useful when copied into a new Worker project and must make future Cloudflare, Wrangler, and platform changes deliberate, testable, and documented.
 
 ## Mission and scope
 
@@ -82,19 +82,19 @@ A change that touches only Markdown files, and no source, test, configuration, s
 
 This exemption does not apply when the same change also edits code or configuration, and it does not remove the requirement to keep documentation, changelog, and migration notes consistent.
 
-## Forks and downstream alignment
+## Downstream alignment
 
-This repository is an upstream template, not a remote package that can safely overwrite application code. Design changes so a fork can compare and adopt them deliberately:
+This repository is an upstream template, not a remote package that can safely overwrite application code. Design changes so a downstream project can compare and adopt them deliberately:
 
 - Keep template-owned files and extension points obvious.
 - Avoid edits that require blind copying over downstream business logic.
 - Mark intentional downstream customizations in documentation or configuration, not by silently diverging.
 - Document migration steps for renamed files, changed scripts, Wrangler schema changes, runtime changes, and removed defaults.
 - Include a template version in the repository or generated project metadata when practical. A downstream project should be able to identify the upstream version it started from.
-- Use a repeatable sync/rebase process and review the diff before applying upstream changes.
+- Use a repeatable process (for example, `git cherry-pick` against a fetched `upstream` remote — see `docs/using-this-template.md`) and review the diff before applying upstream changes.
 - Add contract tests that protect the promises of the boilerplate. When an upstream change intentionally changes a promise, update the tests and migration notes together.
 
-Do not promise automatic flow-down unless an actual synchronization mechanism exists. Forks need human review because application code, bindings, security policy, and deployment topology are project-specific.
+Do not promise automatic flow-down: no synchronization mechanism exists for either supported starting path (**Use this template** or clone). Downstream projects need human review because application code, bindings, security policy, and deployment topology are project-specific.
 
 ## Documentation requirements
 
@@ -103,7 +103,7 @@ Update documentation in the same change when behavior or workflow changes. Docum
 | File | Audience and role |
 | --- | --- |
 | `README.md` | Consumers: what the template is, quickstart, prerequisites, commands, and links onward. Keep it short and task-oriented; move detail into `docs/`. |
-| `docs/using-this-template.md` | Consumers: one-time project setup — how to start (GitHub template vs. fork vs. clone), Worker naming, environment isolation, bindings, secrets, repository rules, upstream adoption. |
+| `docs/using-this-template.md` | Consumers: one-time project setup — how to start (GitHub template vs. clone), Worker naming, environment isolation, bindings, secrets, repository rules, upstream adoption. |
 | `docs/gitflow-and-branching.md` | Consumers: branches, pull requests, promotion, deployment gating, and rollback. |
 | `docs/versioning-and-changesets.md` | Consumers: recording changesets, the release pull request, cutting versions and tags. |
 | `docs/using-ai.md` | Consumers: how AI tooling is wired in — instruction files, MCP servers, the contract-test and human-gate guardrails, and how to adapt the instruction files downstream. |
@@ -112,7 +112,7 @@ Update documentation in the same change when behavior or workflow changes. Docum
 
 Keep these roles distinct rather than duplicating content: state a fact in one document and link to it from the others. When renaming, splitting, or adding a document, update every cross-reference, including the README documentation table and the instruction files.
 
-This repository is a real GitHub template repository, so "template" is accurate terminology. Documentation must distinguish the two consumption paths, because they are not equivalent: a repository created with **Use this template** shares no commit history with upstream, so `.github/workflows/upstream-sync.yml` cannot merge into it and upstream adoption is manual; a **fork** retains history and an upstream link, so the sync workflow works. Do not describe automatic flow-down for the template path.
+This repository is a real GitHub template repository, so "template" is accurate terminology. There is no automated upstream-sync mechanism for either supported starting path: a repository created with **Use this template** shares no commit history with upstream at all, so `git cherry-pick` from a fetched `upstream` remote is the adoption path; a plain clone keeps full history but no repository of its own until its remote is repointed, after which the same manual adoption applies. Documentation must not promise automatic flow-down for either path. Do not document forking this repository as a supported starting path — no synchronization automation exists for it, and offering it as a choice implies there is.
 
 Documentation must also distinguish local emulation from deployed Cloudflare behavior. Do not call a local test equivalent to an integration test unless it actually exercises the relevant Cloudflare service.
 
@@ -128,16 +128,16 @@ The instruction contract version describes the requirements agents and downstrea
 
 - **Patch**: clarify wording, fix a typo, or add examples without changing the required workflow.
 - **Minor**: add a compatible requirement or capability that does not invalidate the existing project structure.
-- **Major**: change a requirement in a way that requires forks or maintainers to revise their workflow, such as changing the project language, renaming required files, changing required commands, or altering deployment and environment contracts.
+- **Major**: change a requirement in a way that requires downstream projects or maintainers to revise their workflow, such as changing the project language, renaming required files, changing required commands, or altering deployment and environment contracts.
 
-Keep the instruction contract version aligned across `claude.md`, `AGENTS.md`, and `.github/copilot-instructions.md`. Every release or instruction-contract change should state whether downstream forks need action and include migration guidance when required.
+Keep the instruction contract version aligned across `claude.md`, `AGENTS.md`, and `.github/copilot-instructions.md`. Every release or instruction-contract change should state whether downstream projects need action and include migration guidance when required.
 
 Keep `package.json` version, `CHANGELOG.md`, tags, and release notes consistent. Do not edit the version casually in feature commits if releases are automated; follow the repository's chosen release tool once established. Use conventional commit messages only if the repository adopts them and documents the required format. Dependencies must be reviewed for runtime, license, security, and Wrangler compatibility impact.
 
 Every release should state:
 
 - what changed;
-- whether downstream forks need action;
+- whether downstream projects need action;
 - the migration or rollback procedure;
 - the supported Node.js, Wrangler, and runtime versions;
 - the validation performed.
@@ -156,4 +156,4 @@ Never commit secrets, `.dev.vars`, `.env*` files containing values, Cloudflare a
 
 ## Definition of done
 
-A template change is complete only when the code, tests, configuration, documentation, downstream impact, and release classification agree. A reviewer should be able to clone or fork the repository, follow the documented commands, run tests locally without production access, identify each environment, and understand exactly how to adopt the change.
+A template change is complete only when the code, tests, configuration, documentation, downstream impact, and release classification agree. A reviewer should be able to start a repository from this template or clone it, follow the documented commands, run tests locally without production access, identify each environment, and understand exactly how to adopt the change.
