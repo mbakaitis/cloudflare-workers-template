@@ -52,6 +52,18 @@ Replace `acme/acme-weather-api` with what you actually created. The `cd` command
 
 Keep the `.github/`, `docs/`, `src/`, `test/`, `package.json`, and `wrangler.jsonc` files unless your project has a deliberate alternative.
 
+### Replace the AI instruction files
+
+If you use an AI coding tool, replace the template's maintainer-facing instruction files with the application-facing ones shipped alongside them — the maintainer versions describe keeping this boilerplate up to date for many future projects, which no longer applies once you're building on top of it:
+
+```sh
+mv claude-for-users.md claude.md
+mv AGENTS-for-users.md AGENTS.md
+mv .github/copilot-instructions-for-users.md .github/copilot-instructions.md
+```
+
+If you don't use AI tooling, delete all six files instead. See [Using AI With This Template](using-ai.md#the-instruction-files) for what each file is for.
+
 ## 2. Name your Workers
 
 This step assigns the Cloudflare Worker resource names for your project. These are not GitHub repository names, branch names, domains, or API tokens. A Worker name identifies a deployed Worker inside your Cloudflare account, so choose names that are unique and recognizable.
@@ -265,6 +277,7 @@ Rollback is a reviewed revert or a deployment of the previous successful commit.
 - Your three Worker names are distinct, and any bindings are environment-specific and intentional.
 - `npm test` passes, including the contract tests.
 - A merge to `develop` deploys non-production, and an approved merge to `main` deploys production.
+- The AI instruction files describe your project: `claude.md`, `AGENTS.md`, and `.github/copilot-instructions.md` came from the `-for-users` files (or you deleted all six, if you don't use AI tooling).
 
 ## Adding environment-specific bindings
 

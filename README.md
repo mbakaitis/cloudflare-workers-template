@@ -171,7 +171,7 @@ This template was built with AI assistance, and it ships ready for it. You do no
 - **Unit tests** are a second safety net. Agents should NEVER delete tests or reduce test coverage with a proposed change, unless directed by a human to do so.
 - **Human gates** cover the rest: deployment stays off until you opt in, production requires approval, and Cloudflare credentials live in GitHub secrets that no local tool can read. Automation can open a pull request; it cannot ship to production.
 
-Instructions guide an assistant; they cannot constrain one. That is why the promises that matter are tests and gates rather than prose. See [Using AI with this template](docs/using-ai.md) for the details, including how to adapt the instruction files to your own project.
+Instructions guide an assistant; they cannot constrain one. That is why the promises that matter are tests and gates rather than prose. See [Using AI with this template](docs/using-ai.md) for the details, including how to switch to the application-facing instruction files once you start your own project.
 
 ## License
 

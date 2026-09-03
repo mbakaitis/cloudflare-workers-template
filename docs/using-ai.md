@@ -11,7 +11,7 @@ Two ideas drive the design:
 
 | Piece | Where | What it does |
 | --- | --- | --- |
-| Instruction files | `claude.md`, `AGENTS.md`, `.github/copilot-instructions.md` | Tell an assistant how to work in this repository |
+| Instruction files | `claude.md`, `AGENTS.md`, `.github/copilot-instructions.md` (and their `-for-users` counterparts) | Tell an assistant how to work in this repository |
 | Documentation MCP server | `.mcp.json`, `.vscode/mcp.json` | Lets an assistant read current Cloudflare documentation instead of guessing |
 | GitHub MCP server | `.mcp.json`, `.vscode/mcp.json` | Lets an assistant read issues and repository data you already have access to |
 | Contract tests | `test/contracts/` | Fail the build when a change breaks an environment or workflow promise |
@@ -19,23 +19,33 @@ Two ideas drive the design:
 
 ## The instruction files
 
-Three files carry the same guidance for different tools:
+This repository ships two parallel sets of three files, because different tools look for different filenames and because a template has a different audience than the project built from it:
 
-| File | Read by |
-| --- | --- |
-| [claude.md](../claude.md) | Claude Code, and the canonical version of the guidance |
-| [AGENTS.md](../AGENTS.md) | Tools that follow the `AGENTS.md` convention |
-| [.github/copilot-instructions.md](../.github/copilot-instructions.md) | GitHub Copilot |
+| Maintainer file (this repository) | Read by | Downstream counterpart |
+| --- | --- | --- |
+| [claude.md](../claude.md) | Claude Code, and the canonical version of the guidance | `claude-for-users.md` |
+| [AGENTS.md](../AGENTS.md) | Tools that follow the `AGENTS.md` convention | `AGENTS-for-users.md` |
+| [.github/copilot-instructions.md](../.github/copilot-instructions.md) | GitHub Copilot | `.github/copilot-instructions-for-users.md` |
 
-`claude.md` is the full maintenance guide. The other two are shorter entry points that must stay consistent with it — they exist because different tools look for different filenames, not because they say different things.
+The left column describes maintaining *this template* for many future projects: mission and scope, downstream alignment, an instruction contract version. The `-for-users` files describe building *an application* on top of it: environment isolation, TDD, secrets handling, treating MCP results as research rather than authorization — with the template-maintenance-only material removed. Neither set is a subset of the other; they're written for different jobs.
 
-They carry an **instruction contract version** in their headers, separate from the package version, so a change in expectations is visible and reviewable rather than silent. If you change guidance in one file, we suggest you change all three and bump that version. See [Versioning and changesets](versioning-and-changesets.md#two-version-numbers).
+`claude.md` and `claude-for-users.md` are each the full guide for their audience; the `AGENTS.md`/`.github/copilot-instructions.md` files and their `-for-users` counterparts are shorter entry points that stay consistent with the matching full guide, not independent sources of truth.
 
-### Adapt them for your project
+The maintainer files carry an **instruction contract version** in their headers, separate from the package version, so a change to what this template requires is visible and reviewable rather than silent. See [Versioning and changesets](versioning-and-changesets.md#two-version-numbers). The `-for-users` files carry no such version — a single application has no upstream file to stay in sync with, so the concept doesn't apply once they're in place.
 
-These files describe *this template's* rules — keep the base Worker minimal, don't add TypeScript, treat downstream projects carefully. Once you have your own project, some of that stops applying and your own rules take over: your domain vocabulary, your architecture decisions, your review expectations.
+### Switch to the downstream files
 
-Edit them. Keep the parts that protect you — environment isolation, TDD, no secrets in source — and replace the template-maintenance parts with what your project actually needs. Then keep all three in sync, because a stale instruction file is worse than none: it confidently misleads.
+Do this once, when you set up a new project from the template — see step 1 of [Using This Template](using-this-template.md#1-create-and-clone-your-repository):
+
+```sh
+mv claude-for-users.md claude.md
+mv AGENTS-for-users.md AGENTS.md
+mv .github/copilot-instructions-for-users.md .github/copilot-instructions.md
+```
+
+This replaces the maintainer files outright rather than asking you to edit them down — a half-edited maintainer file is easy to leave half-finished, and it still carries the instruction-contract-version machinery you don't need. If you don't use AI tooling, delete all six files instead.
+
+From there, the files describe your project and your project alone. Edit them as your requirements change; there is no upstream sync to preserve.
 
 ## MCP servers
 

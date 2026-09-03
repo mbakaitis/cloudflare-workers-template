@@ -1,6 +1,6 @@
 # Cloudflare Workers Template Maintainer Guide
 
-**Instruction contract version:** 2.0.0
+**Instruction contract version:** 2.1.0
 
 This repository is the versioned boilerplate for Cloudflare Workers. It must remain useful when copied into a new Worker project and must make future Cloudflare, Wrangler, and platform changes deliberate, testable, and documented.
 
@@ -14,6 +14,8 @@ This repository is the versioned boilerplate for Cloudflare Workers. It must rem
 ## Source of truth and instructions
 
 - This file is the canonical maintenance guide. `AGENTS.md` and `.github/copilot-instructions.md` are entry points for tools that use those filenames; keep them aligned with this file.
+- This file, `AGENTS.md`, and `.github/copilot-instructions.md` describe *maintaining the template*. They are not meant to be edited in place by a downstream project — that produces a file that is neither the template's guidance nor a coherent application guide. Instead, this repository ships a second, downstream-facing set: `claude-for-users.md`, `AGENTS-for-users.md`, and `.github/copilot-instructions-for-users.md`. `docs/using-this-template.md` instructs new projects to replace the maintainer files with these during one-time setup (see "Replace the AI instruction files" in that guide). The `-for-users` files carry no instruction contract version and no upstream-sync expectation, because a single application does not need either.
+- When a change here affects what a downstream application should also do — TDD, environment isolation, secrets handling, treating MCP results as research rather than authorization — mirror it into the matching `-for-users` file in the same change. When a change is specific to maintaining *this* template (mission and scope, downstream alignment, the instruction contract version itself), it does not belong in the `-for-users` files.
 - Keep the instruction contract version in this file and its adapter files aligned. Use Semantic Versioning: patch for clarifications, minor for compatible requirements, and major for breaking instruction changes.
 - Before changing platform configuration, consult current Cloudflare documentation for Workers, Wrangler, environments, compatibility dates, bindings, secrets, deployments, and testing. When available, use the configured Cloudflare documentation MCP server in `.mcp.json` or `.vscode/mcp.json` for this lookup.
 - Treat MCP results as documentation research, not as authorization to change accounts, deploy code, create resources, or handle secrets. Verify important platform claims against the current official documentation and record the relevant documentation link or decision in repository docs when it affects the template contract.
@@ -93,6 +95,7 @@ This repository is an upstream template, not a remote package that can safely ov
 - Include a template version in the repository or generated project metadata when practical. A downstream project should be able to identify the upstream version it started from.
 - Use a repeatable process (for example, `git cherry-pick` against a fetched `upstream` remote — see `docs/using-this-template.md`) and review the diff before applying upstream changes.
 - Add contract tests that protect the promises of the boilerplate. When an upstream change intentionally changes a promise, update the tests and migration notes together.
+- `claude-for-users.md`, `AGENTS-for-users.md`, and `.github/copilot-instructions-for-users.md` are the template's designated extension point for AI-tool guidance in a downstream project. Keep them free of template-maintenance-only content — no mission/scope, no instruction contract version, no upstream-adoption process — so a downstream project can rename them into place without translation.
 
 Do not promise automatic flow-down: no synchronization mechanism exists for either supported starting path (**Use this template** or clone). Downstream projects need human review because application code, bindings, security policy, and deployment topology are project-specific.
 
