@@ -31,12 +31,12 @@
     "deploy:production": "wrangler deploy --env production"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.31.1",
-    "@cloudflare/vitest-pool-workers": "^0.22.0",
-    "@eslint/js": "^10.0.1",
-    "@stylistic/eslint-plugin": "^5.10.0",
-    "eslint": "^10.8.1",
-    "vitest": "^4.1.11",
-    "wrangler": "^4.124.0"
+    "@changesets/cli": "3.0.3",
+    "@cloudflare/vitest-plugin": "1.4.7",
+    "@eslint/js": "10.0.1",
+    "@stylistic/eslint-plugin": "5.10.0",
+    "eslint": "10.13.0",
+    "vitest": "5.0.5",
+    "wrangler": "4.152.0"
   }
 }
